@@ -1,1 +1,5 @@
-# environment-setup
+# Environment Setup:
+
+## Contains:
+
+- Neovim Setup
