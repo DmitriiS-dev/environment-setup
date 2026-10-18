@@ -225,16 +225,6 @@ Modified files show a `+` marker in the top tabline.
 
 On Windows, the terminal prefers PowerShell 7 (`pwsh.exe`), then Windows PowerShell, and finally Neovim's configured shell. It does not require a `SHELL` environment variable.
 
-## Obsidian Notes
-
-| Keys | Mode | Action |
-| --- | --- | --- |
-| `Space nn` | N | Create a new note |
-| `Space nf` | N | Find a note |
-| `Space ns` | N | Search notes |
-| `Space nt` | N | Open today's note |
-| `Space nw` | N | Switch Obsidian workspace |
-
 ## Which-Key Groups
 
 Press `Space` and wait:

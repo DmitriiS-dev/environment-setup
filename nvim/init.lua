@@ -110,6 +110,35 @@ if vim.fn.has("win32") == 1 and vim.fn.executable("win32yank.exe") == 1 then
 		},
 		cache_enabled = 0,
 	}
+elseif vim.fn.has("wsl") == 1 and vim.fn.executable("clip.exe") == 1 then
+	-- WSL clipboard fallback
+	vim.g.clipboard = {
+		name = "wslclip",
+		copy = {
+			["+"] = { "clip.exe" },
+			["*"] = { "clip.exe" },
+		},
+		paste = {
+			["+"] = { "powershell.exe", "-noprofile", "-command", "Get-Clipboard" },
+			["*"] = { "powershell.exe", "-noprofile", "-command", "Get-Clipboard" },
+		},
+		cache_enabled = 0,
+	}
+elseif vim.env.SSH_TTY or vim.env.SSH_CLIENT or vim.env.SSH_CONNECTION then
+	-- Remote SSH session: use OSC 52 so yanked text copies to local terminal
+	if vim.ui and vim.ui.clipboard and vim.ui.clipboard.osc52 then
+		vim.g.clipboard = {
+			name = "OSC 52",
+			copy = {
+				["+"] = require("vim.ui.clipboard.osc52").copy("+"),
+				["*"] = require("vim.ui.clipboard.osc52").copy("*"),
+			},
+			paste = {
+				["+"] = require("vim.ui.clipboard.osc52").paste("+"),
+				["*"] = require("vim.ui.clipboard.osc52").paste("*"),
+			},
+		}
+	end
 end
 
 vim.opt.guicursor =
@@ -351,7 +380,6 @@ vim.pack.add({
 	"https://www.github.com/neovim/nvim-lspconfig",
 	"https://github.com/mason-org/mason.nvim",
 	"https://github.com/creativenull/efmls-configs-nvim",
-	"https://github.com/obsidian-nvim/obsidian.nvim",
 	"https://github.com/petertriho/nvim-scrollbar",
 	"https://github.com/WhoIsSethDaniel/mason-tool-installer.nvim",
 	"https://github.com/nvimdev/lspsaga.nvim",
@@ -437,47 +465,6 @@ setup_treesitter()
 require("ts_context_commentstring").setup({
 	enable_autocmd = false,
 })
-
-local function get_notes_path()
-	if vim.fn.has("win32") == 1 then
-		return vim.fn.expand("~/Documents/Notes")
-	end
-
-	local os_release = vim.fn.system("cat /etc/os-release")
-	if os_release:match("Artix") then
-		return vim.fn.expand("~/Documents/Notes")
-	elseif os_release:match("Ubuntu") then
-		return "/mnt/c/Users/Rad/Documents/Notes"
-	end
-
-	error("Unsupported OS: no notes path configured")
-end
-
-local function setup_obsidian()
-	local notes_path = get_notes_path()
-	if vim.fn.isdirectory(notes_path) == 0 then
-		vim.fn.mkdir(notes_path, "p")
-	end
-
-  require("obsidian").setup({
-    legacy_commands = false,
-	    workspaces = { { name = "Notes", path = notes_path } },
-    picker = { name = "fzf-lua" },
-  })
-
-  vim.keymap.set("n", "<leader>nn", function()
-    vim.cmd("Obsidian workspace")
-    vim.defer_fn(function()
-      vim.cmd("Obsidian new")
-    end, 500)
-  end, { desc = "New note" })
-  vim.keymap.set("n", "<leader>nf", "<cmd>Obsidian quick_switch<cr>", { desc = "Find note" })
-  vim.keymap.set("n", "<leader>ns", "<cmd>Obsidian search<cr>",       { desc = "Search notes" })
-  vim.keymap.set("n", "<leader>nt", "<cmd>Obsidian today<cr>",        { desc = "Today's daily note" })
-  vim.keymap.set("n", "<leader>nw", "<cmd>Obsidian workspace<cr>",    { desc = "Switch workspace" })
-end
-
-setup_obsidian()
 
 require("nvim-tree").setup({
 	view = {
@@ -729,6 +716,45 @@ require("mason-tool-installer").setup({
 		"tree-sitter-cli",
 	},
 	run_on_start = true,
+})
+
+-- Warn if foundational CLI tools or runtimes needed by plugins/LSPs are missing
+vim.api.nvim_create_autocmd("User", {
+	pattern = "MasonToolsStartingInstall",
+	once = true,
+	callback = function()
+		local missing = {}
+		if vim.fn.executable("git") ~= 1 then
+			table.insert(missing, "git")
+		end
+		if vim.fn.executable("rg") ~= 1 then
+			table.insert(missing, "ripgrep (rg) [required for fzf-lua grep]")
+		end
+		if vim.fn.executable("fzf") ~= 1 then
+			table.insert(missing, "fzf [recommended for fzf-lua]")
+		end
+		if vim.fn.executable("node") ~= 1 or vim.fn.executable("npm") ~= 1 then
+			table.insert(missing, "Node.js / npm [required for pyright, prettierd, ts_ls]")
+		end
+		if vim.fn.executable("python3") ~= 1 and vim.fn.executable("python") ~= 1 then
+			table.insert(missing, "Python 3 [recommended for ruff, basedpyright]")
+		end
+		if vim.fn.executable("gcc") ~= 1 and vim.fn.executable("clang") ~= 1 then
+			table.insert(missing, "C compiler (gcc/clang) [required to build treesitter parsers]")
+		end
+
+		if #missing > 0 then
+			vim.schedule(function()
+				vim.notify(
+					"⚠️ Some optional runtimes/tools are missing from your PATH:\n  • "
+						.. table.concat(missing, "\n  • ")
+						.. "\nSome LSPs, formatters, or pickers may not function properly until installed.",
+					vim.log.levels.WARN,
+					{ title = "Environment Warning" }
+				)
+			end)
+		end
+	end,
 })
 
 -- ============================================================================
@@ -1136,6 +1162,11 @@ local function terminal_command()
 			if vim.fn.executable(shell) == 1 then
 				return { vim.fn.exepath(shell), "-NoLogo" }
 			end
+		end
+	else
+		-- On Linux/macOS, prefer fish if installed, otherwise fallback to default shell
+		if vim.fn.executable("fish") == 1 then
+			return { vim.fn.exepath("fish") }
 		end
 	end
 	return vim.o.shell
