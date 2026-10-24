@@ -80,14 +80,6 @@ else
     fail "eza is missing from PATH"
 fi
 
-if command -v bat >/dev/null 2>&1; then
-    pass "bat is available ($(bat --version | head -n 1))"
-elif command -v batcat >/dev/null 2>&1; then
-    warn "bat is only available under 'batcat' (symlink to ~/.local/bin/bat might be missing)"
-else
-    fail "bat is missing from PATH"
-fi
-
 if command -v btop >/dev/null 2>&1; then
     pass "btop is available ($(btop --version 2>&1 | head -n 1))"
 else

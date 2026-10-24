@@ -36,7 +36,7 @@ log_info "Starting environment setup for $OS_FAMILY ($ARCH_TYPE)..."
 # Step 1: Ensure baseline tools (curl, git, wget, ca-certificates) are installed
 bash "$SCRIPT_DIR/scripts/01-prereqs.sh"
 
-# Step 2: Update system packages, install CLI tools (tmux, btop, htop, bat, eza) & runtimes (Node, Python, GCC)
+# Step 2: Update system packages, install CLI tools (tmux, btop, htop, eza) & runtimes (Node, Python, GCC)
 bash "$SCRIPT_DIR/scripts/02-system-packages.sh"
 
 # Step 3: Install & configure firewall rules (UFW/firewalld allowing SSH/22, HTTP/80, HTTPS/443)
@@ -70,7 +70,6 @@ echo -e "  • ${BOLD}Fish Shell${RESET} (configured at ~/.config/fish/config.fi
 echo -e "  • ${BOLD}Atuin${RESET} (encrypted SQLite command history search via Ctrl+R)"
 echo -e "  • ${BOLD}tmux${RESET} (configured with mouse support & vim navigation)"
 echo -e "  • ${BOLD}eza${RESET} (modern replacement for ls)"
-echo -e "  • ${BOLD}bat${RESET} (syntax-highlighted cat)"
 echo -e "  • ${BOLD}btop & htop${RESET} (system resource monitors)"
 echo -e "  • ${BOLD}UFW Firewall${RESET} (configured with SSH, HTTP/80, and HTTPS/443 allowed)"
 

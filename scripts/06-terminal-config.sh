@@ -51,11 +51,6 @@ if type -q eza
     alias lt='eza --tree --level=2 --icons'
 end
 
-# If bat is installed, alias cat to bat without pagination
-if type -q bat
-    alias cat='bat --paging=never'
-end
-
 # If neovim is installed, set it as default system editor and alias vim/vi to nvim
 if type -q nvim
     set -gx EDITOR nvim

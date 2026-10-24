@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # 02-system-packages.sh: System update, upgrade, packages, runtimes & eza
-# Updates distro repositories, installs terminal tools (tmux, fish, btop, bat, eza),
+# Updates distro repositories, installs terminal tools (tmux, fish, btop, eza),
 # and provides build runtimes (gcc/make, Python, Node.js) needed by Mason/LSPs.
 # ==============================================================================
 
@@ -45,18 +45,10 @@ if [[ "$OS_FAMILY" == "ubuntu" || "$OS_FAMILY" == "debian" || "$OS_LIKE" == *"de
 
     # Install terminal applications, build toolchain, and Python runtimes
     $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y \
-        fish tmux htop btop bat \
+        fish tmux htop btop \
         build-essential gcc g++ make \
         python3 python3-pip python3-venv \
         unzip tar xclip
-
-    # Ubuntu/Debian packages 'bat' as 'batcat' to avoid filename collision; symlink to 'bat'
-    if command -v batcat >/dev/null 2>&1 && ! command -v bat >/dev/null 2>&1; then
-        # Ensure destination bin directory exists
-        mkdir -p "$HOME/.local/bin"
-        # Create symbolic link pointing ~/.local/bin/bat to /usr/bin/batcat
-        ln -sf "$(command -v batcat)" "$HOME/.local/bin/bat"
-    fi
 
     # Check if 'eza' is already installed
     if ! command -v eza >/dev/null 2>&1; then
@@ -107,9 +99,6 @@ elif [[ "$OS_FAMILY" == "ol" || "$OS_FAMILY" == "rhel" || "$OS_FAMILY" == "cento
         python3 python3-pip \
         unzip tar xclip 2>/dev/null || true
 
-    # Install bat from repositories
-    $SUDO $PKG_MGR install -y bat 2>/dev/null || true
-
     # Install eza from repositories
     $SUDO $PKG_MGR install -y eza 2>/dev/null || true
 
@@ -122,7 +111,7 @@ elif [[ "$OS_FAMILY" == "ol" || "$OS_FAMILY" == "rhel" || "$OS_FAMILY" == "cento
 elif [[ "$OS_FAMILY" == "arch" || "$OS_LIKE" == *"arch"* ]]; then
     # Full system update and package installation using pacman
     $SUDO pacman -Syu --noconfirm \
-        fish tmux htop btop bat eza \
+        fish tmux htop btop eza \
         base-devel python python-pip \
         nodejs npm unzip xclip 2>/dev/null || true
 fi

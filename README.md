@@ -38,7 +38,6 @@ For a step-by-step interactive walkthrough testing every tool and shortcut, chec
 
 ### 3. Modern CLI Utilities
 * **eza**: Modern, colorful replacement for `ls` with filetype indicators, git status, and tree views.
-* **bat**: `cat` clone with syntax highlighting and git integration.
 * **btop & htop**: Beautiful and powerful interactive system monitors for CPU, memory, disks, and processes.
 
 ### 4. Firewall & Security
