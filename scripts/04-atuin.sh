@@ -29,6 +29,16 @@ if ! command -v atuin >/dev/null 2>&1; then
     curl --proto '=https' --tlsv1.2 -sSf https://setup.atuin.sh | bash -s -- --no-modify-path || {
         log_warn "Standard Atuin install script had an issue, checking fallback..."
     }
+
+    # Atuin installer commonly places binary in ~/.atuin/bin; symlink to ~/.local/bin if needed
+    if [ -f "$HOME/.atuin/bin/atuin" ] && [ ! -f "$HOME/.local/bin/atuin" ]; then
+        ln -sf "$HOME/.atuin/bin/atuin" "$HOME/.local/bin/atuin"
+    fi
+fi
+
+# Ensure ~/.atuin/bin is also in PATH for current subshell check if present
+if [ -d "$HOME/.atuin/bin" ]; then
+    export PATH="$HOME/.atuin/bin:$PATH"
 fi
 
 # Verify if atuin binary is now executable on the PATH

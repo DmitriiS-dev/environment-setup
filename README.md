@@ -2,6 +2,13 @@
 
 Quick, automated setup script for Linux environments (Ubuntu, Debian, Oracle Linux, Fedora, Arch) and WSL, tailored for terminal development with **Neovim**, **Fish shell**, **Atuin**, **tmux**, and modern CLI tools.
 
+## Pre-Installation:
+Setup for git:
+```bash
+sudo apt update
+sudo apt install git -y
+```
+
 ## Installation
 
 Clone the repository and run `install.sh`:
@@ -29,7 +36,7 @@ For a step-by-step interactive walkthrough testing every tool and shortcut, chec
 ## What Gets Installed & Configured
 
 ### 1. Baseline Tools & Prerequisites
-* **curl & git**: Guaranteed to be installed first to support repository cloning, binary downloads, and version control.
+* **curl, wget & certificates**: Baseline web and download tools installed first.
 
 ### 2. Terminal Shell & Environment
 * **Fish Shell**: Modern, user-friendly interactive shell with syntax highlighting and autosuggestions.
@@ -61,7 +68,7 @@ environment-setup/
 ├── VERIFY.md                      # Hands-on interactive manual testing guide
 ├── scripts/
 │   ├── common.sh                  # Shared logging, sudo handling, and OS/arch detection
-│   ├── 01-prereqs.sh              # Ensures curl, git, and certificates are installed first
+│   ├── 01-prereqs.sh              # Ensures curl, wget, and certificates are installed first
 │   ├── 02-system-packages.sh      # System upgrade, packages, runtimes (Node, Python), & eza
 │   ├── 03-security.sh             # UFW / firewall rules (SSH, HTTP 80, HTTPS 443)
 │   ├── 04-atuin.sh                # Atuin shell history installation

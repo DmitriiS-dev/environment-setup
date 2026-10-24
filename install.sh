@@ -33,7 +33,7 @@ ensure_local_bin
 # Display an informative banner indicating which OS and CPU architecture were identified
 log_info "Starting environment setup for $OS_FAMILY ($ARCH_TYPE)..."
 
-# Step 1: Ensure baseline tools (curl, git, wget, ca-certificates) are installed
+# Step 1: Ensure baseline tools (curl, wget, ca-certificates) are installed
 bash "$SCRIPT_DIR/scripts/01-prereqs.sh"
 
 # Step 2: Update system packages, install CLI tools (tmux, btop, htop, eza) & runtimes (Node, Python, GCC)
@@ -64,7 +64,7 @@ echo ""
 
 # Display a checklist of all components installed and configured
 echo -e "Installed & configured tools:"
-echo -e "  • ${BOLD}curl & git${RESET} (baseline tools and version control)"
+echo -e "  • ${BOLD}curl & wget${RESET} (baseline tools and certificates)"
 echo -e "  • ${BOLD}Neovim${RESET} (with blink.cmp, fzf-lua, mini.nvim, OSC 52 clipboard)"
 echo -e "  • ${BOLD}Fish Shell${RESET} (configured at ~/.config/fish/config.fish)"
 echo -e "  • ${BOLD}Atuin${RESET} (encrypted SQLite command history search via Ctrl+R)"

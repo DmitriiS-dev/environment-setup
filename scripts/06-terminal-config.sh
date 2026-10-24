@@ -41,8 +41,11 @@ cat << 'EOF' > "$FISH_CONFIG"
 # Fish Shell Configuration
 # ==============================================================================
 
-# Ensure ~/.local/bin is on PATH globally within Fish
+# Ensure ~/.local/bin and ~/.atuin/bin are on PATH globally within Fish
 fish_add_path -g $HOME/.local/bin
+if test -d $HOME/.atuin/bin
+    fish_add_path -g $HOME/.atuin/bin
+end
 
 # If eza is installed, create modern aliases for ls with icons and git flags
 if type -q eza
@@ -166,7 +169,7 @@ if command -v fish >/dev/null 2>&1; then
         # Notify user of shell change
         log_info "Changing default login shell to fish ($FISH_PATH)..."
 
-        # Execute chsh to set default login shell to fish
-        chsh -s "$FISH_PATH" "$USER" 2>/dev/null || log_warn "Could not change default shell automatically with chsh. You can run 'chsh -s $(which fish)' manually."
+        # Try changing shell without password via sudo first, then fallback to unprivileged chsh
+        $SUDO chsh -s "$FISH_PATH" "$USER" 2>/dev/null || chsh -s "$FISH_PATH" "$USER" 2>/dev/null || log_warn "Could not change default shell automatically with chsh. You can run 'chsh -s $(which fish)' manually."
     fi
 fi

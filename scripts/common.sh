@@ -127,4 +127,12 @@ ensure_local_bin() {
         # If missing from PATH, prepend it so user-installed binaries take priority
         *) export PATH="$HOME/.local/bin:$PATH" ;;
     esac
+
+    # Also include ~/.atuin/bin if present
+    if [ -d "$HOME/.atuin/bin" ]; then
+        case ":$PATH:" in
+            *":$HOME/.atuin/bin:"*) ;;
+            *) export PATH="$HOME/.atuin/bin:$PATH" ;;
+        esac
+    fi
 }

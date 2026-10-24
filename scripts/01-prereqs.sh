@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# 01-prereqs.sh: Install baseline prerequisites (curl, git, wget, ca-certificates)
+# 01-prereqs.sh: Install baseline prerequisites (curl, wget, ca-certificates)
 # Ensures bootstrap tools exist before doing further package installations.
 # ==============================================================================
 
@@ -23,15 +23,15 @@ setup_sudo
 detect_os
 
 # Print a friendly status message to standard output indicating what phase is running
-log_info "Ensuring base prerequisites (curl, git, wget, ca-certificates) are installed..."
+log_info "Ensuring base prerequisites (curl, wget, ca-certificates) are installed..."
 
 # Branch 1: Debian and Ubuntu family distributions
 if [[ "$OS_FAMILY" == "ubuntu" || "$OS_FAMILY" == "debian" || "$OS_LIKE" == *"debian"* || "$OS_LIKE" == *"ubuntu"* ]]; then
     # Refresh the local package index lists so the package manager knows about the latest versions
     $SUDO apt-get update -y
 
-    # Install curl, git, wget, and SSL/TLS certificates non-interactively without prompting for user input
-    $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y curl wget git ca-certificates
+    # Install curl, wget, and SSL/TLS certificates non-interactively without prompting for user input
+    $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y curl wget ca-certificates
 
 # Branch 2: Red Hat family distributions (Oracle Linux, RHEL, CentOS, Rocky Linux, AlmaLinux, Fedora)
 elif [[ "$OS_FAMILY" == "ol" || "$OS_FAMILY" == "rhel" || "$OS_FAMILY" == "centos" || "$OS_FAMILY" == "rocky" || "$OS_FAMILY" == "almalinux" || "$OS_FAMILY" == "fedora" ]]; then
@@ -44,14 +44,14 @@ elif [[ "$OS_FAMILY" == "ol" || "$OS_FAMILY" == "rhel" || "$OS_FAMILY" == "cento
         PKG_MGR="yum"
     fi
 
-    # Install curl, wget, git, and certificates using the resolved package manager (dnf or yum)
-    $SUDO $PKG_MGR install -y curl wget git ca-certificates
+    # Install curl, wget, and certificates using the resolved package manager (dnf or yum)
+    $SUDO $PKG_MGR install -y curl wget ca-certificates
 
 # Branch 3: Arch Linux and Arch-based distributions
 elif [[ "$OS_FAMILY" == "arch" || "$OS_LIKE" == *"arch"* ]]; then
     # Refresh package databases (-y) and install prerequisites (-S) without asking for confirmation (--noconfirm)
-    $SUDO pacman -Sy --noconfirm curl wget git ca-certificates
+    $SUDO pacman -Sy --noconfirm curl wget ca-certificates
 fi
 
 # Print a success confirmation message showing that the prerequisite installation is finished
-log_success "Base prerequisites (curl, git) are ready."
+log_success "Base prerequisites (curl, wget, ca-certificates) are ready."

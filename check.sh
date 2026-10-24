@@ -49,18 +49,12 @@ echo ""
 # ------------------------------------------------------------------------------
 # 1. Base Prerequisites Check
 # ------------------------------------------------------------------------------
-log_info "1. Baseline Tools & Version Control"
+log_info "1. Baseline Tools & Web Utilities"
 
 if command -v curl >/dev/null 2>&1; then
     pass "curl is available ($(curl --version | head -n 1 | awk '{print $1, $2}'))"
 else
     fail "curl is missing from PATH"
-fi
-
-if command -v git >/dev/null 2>&1; then
-    pass "git is available ($(git --version))"
-else
-    fail "git is missing from PATH"
 fi
 
 if command -v wget >/dev/null 2>&1; then
