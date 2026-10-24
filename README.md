@@ -13,6 +13,17 @@ chmod +x install.sh
 ./install.sh
 ```
 
+## Verify Your Setup
+
+After installation completes, verify everything with:
+
+```bash
+chmod +x check.sh
+./check.sh
+```
+
+For a step-by-step interactive walkthrough testing every tool and shortcut, check out the [Verification Guide](VERIFY.md).
+
 ---
 
 ## What Gets Installed & Configured
@@ -47,6 +58,8 @@ The installer is modularized into separate scripts under `scripts/`, making each
 ```text
 environment-setup/
 ├── install.sh                     # Main installer entrypoint
+├── check.sh                       # Automated health check & verification suite
+├── VERIFY.md                      # Hands-on interactive manual testing guide
 ├── scripts/
 │   ├── common.sh                  # Shared logging, sudo handling, and OS/arch detection
 │   ├── 01-prereqs.sh              # Ensures curl, git, and certificates are installed first
