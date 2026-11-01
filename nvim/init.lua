@@ -97,6 +97,9 @@ vim.opt.mouse = "a" -- enable mouse support
 vim.opt.clipboard:append("unnamedplus") -- use system clipboard
 vim.opt.modifiable = true -- allow buffer modifications
 
+vim.g.clipboard = 'osc52'
+vim.opt.clipboard = 'unnamedplus'
+
 if vim.fn.has("win32") == 1 and vim.fn.executable("win32yank.exe") == 1 then
 	vim.g.clipboard = {
 		name = "win32yank",
