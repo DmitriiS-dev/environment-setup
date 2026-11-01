@@ -485,15 +485,16 @@ require("ts_context_commentstring").setup({
 })
 
 require("nvim-tree").setup({
-	view = {
-		width = 35,
-	},
-	filters = {
-		dotfiles = false,
-	},
-	renderer = {
-		group_empty = true,
-	},
+    view = {
+        width = 35,
+    },
+    filters = {
+        dotfiles = false,
+        git_ignored = false,
+    },
+    renderer = {
+        group_empty = true,
+    },
 })
 vim.keymap.set("n", "<leader>e", function()
 	require("nvim-tree.api").tree.toggle()
