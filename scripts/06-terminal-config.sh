@@ -93,6 +93,10 @@ set -g default-terminal "xterm-256color"
 # Enable TrueColor (24-bit color) passthrough
 set -ag terminal-overrides ",xterm-256color:Tc"
 
+# Enable clipboard integration and OSC 52 passthrough (tmux 3.2+)
+set -s set-clipboard on
+set -g allow-passthrough on
+
 # Enable mouse support for clicking windows, resizing panes, and scrolling history
 set -g mouse on
 

@@ -124,8 +124,23 @@ elseif vim.fn.has("wsl") == 1 and vim.fn.executable("clip.exe") == 1 then
 		},
 		cache_enabled = 0,
 	}
-elseif vim.env.SSH_TTY or vim.env.SSH_CLIENT or vim.env.SSH_CONNECTION then
-	-- Remote SSH session: use OSC 52 so yanked text copies to local terminal
+elseif vim.env.SSH_TTY or vim.env.SSH_CLIENT or vim.env.SSH_CONNECTION or vim.env.TMUX then
+	-- Remote SSH session or tmux: use OSC 52 so yanked text copies to local terminal
+	if vim.ui and vim.ui.clipboard and vim.ui.clipboard.osc52 then
+		vim.g.clipboard = {
+			name = "OSC 52",
+			copy = {
+				["+"] = require("vim.ui.clipboard.osc52").copy("+"),
+				["*"] = require("vim.ui.clipboard.osc52").copy("*"),
+			},
+			paste = {
+				["+"] = require("vim.ui.clipboard.osc52").paste("+"),
+				["*"] = require("vim.ui.clipboard.osc52").paste("*"),
+			},
+		}
+	end
+elseif vim.fn.has("unix") == 1 and vim.fn.executable("xclip") == 0 and vim.fn.executable("xsel") == 0 and vim.fn.executable("wl-copy") == 0 then
+	-- Fallback when no desktop clipboard provider is installed (e.g. headless Linux / VM)
 	if vim.ui and vim.ui.clipboard and vim.ui.clipboard.osc52 then
 		vim.g.clipboard = {
 			name = "OSC 52",
@@ -189,9 +204,9 @@ vim.keymap.set("n", "<C-u>", "<C-u>zz", { desc = "Half page up (centered)" })
 
 vim.keymap.set("x", "<leader>p", '"_dP', { desc = "Paste without yanking" })
 vim.keymap.set({ "n", "v" }, "<leader>x", '"_d', { desc = "Delete without yanking" })
-vim.keymap.set("x", "<C-c>", '"+y', { desc = "Copy selection" })
+vim.keymap.set({ "v", "x" }, "<C-c>", '"+y', { desc = "Copy selection" })
 vim.keymap.set("n", "<C-v>", '"+p', { desc = "Paste from system clipboard" })
-vim.keymap.set("x", "<C-v>", '"_d"+P', { desc = "Replace selection from clipboard" })
+vim.keymap.set({ "v", "x" }, "<C-v>", '"_d"+P', { desc = "Replace selection from clipboard" })
 vim.keymap.set("i", "<C-v>", '<C-r>+', { desc = "Paste from system clipboard" })
 
 vim.keymap.set("n", "<leader>bn", ":bnext<CR>", { desc = "Next buffer" })
