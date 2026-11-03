@@ -54,6 +54,39 @@ if type -q eza
     alias lt='eza --tree --level=2 --icons'
 end
 
+# Use bat as a syntax-highlighted, cat-compatible file viewer when available
+if type -q bat
+    alias cat='bat --paging=never'
+else if type -q batcat
+    alias bat='batcat'
+    alias cat='batcat --paging=never'
+end
+
+# Initialize fzf key bindings and completions, using packaged scripts on older versions
+if type -q fzf
+    if fzf --fish >/dev/null 2>&1
+        fzf --fish | source
+    else
+        for fzf_script in /usr/share/fzf/key-bindings.fish /usr/share/fzf/shell/key-bindings.fish /usr/share/doc/fzf/examples/key-bindings.fish
+            if test -r $fzf_script
+                source $fzf_script
+                break
+            end
+        end
+        for fzf_script in /usr/share/fzf/completion.fish /usr/share/fzf/shell/completion.fish /usr/share/doc/fzf/examples/completion.fish
+            if test -r $fzf_script
+                source $fzf_script
+                break
+            end
+        end
+    end
+end
+
+# Initialize zoxide smart directory navigation
+if type -q zoxide
+    zoxide init fish | source
+end
+
 # If neovim is installed, set it as default system editor and alias vim/vi to nvim
 if type -q nvim
     set -gx EDITOR nvim

@@ -50,6 +50,11 @@ if [[ "$OS_FAMILY" == "ubuntu" || "$OS_FAMILY" == "debian" || "$OS_LIKE" == *"de
         python3 python3-pip python3-venv \
         unzip tar xclip
 
+    # Install modern shell utilities separately so unavailable packages do not block setup
+    $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y fzf || log_warn "Could not install fzf from apt."
+    $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y bat || log_warn "Could not install bat from apt."
+    $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y zoxide || log_warn "Could not install zoxide from apt."
+
     # Check if 'eza' is already installed
     if ! command -v eza >/dev/null 2>&1; then
         # Inform user of eza APT repository setup
@@ -99,6 +104,11 @@ elif [[ "$OS_FAMILY" == "ol" || "$OS_FAMILY" == "rhel" || "$OS_FAMILY" == "cento
         python3 python3-pip \
         unzip tar xclip 2>/dev/null || true
 
+    # Install modern shell utilities without blocking setup when a package is unavailable
+    $SUDO $PKG_MGR install -y fzf 2>/dev/null || log_warn "Could not install fzf from $PKG_MGR."
+    $SUDO $PKG_MGR install -y bat 2>/dev/null || log_warn "Could not install bat from $PKG_MGR."
+    $SUDO $PKG_MGR install -y zoxide 2>/dev/null || log_warn "Could not install zoxide from $PKG_MGR."
+
     # Install eza from repositories
     $SUDO $PKG_MGR install -y eza 2>/dev/null || true
 
@@ -111,7 +121,7 @@ elif [[ "$OS_FAMILY" == "ol" || "$OS_FAMILY" == "rhel" || "$OS_FAMILY" == "cento
 elif [[ "$OS_FAMILY" == "arch" || "$OS_LIKE" == *"arch"* ]]; then
     # Full system update and package installation using pacman
     $SUDO pacman -Syu --noconfirm \
-        fish tmux htop btop eza \
+        fish tmux htop btop eza fzf zoxide bat \
         base-devel python python-pip \
         nodejs npm unzip xclip 2>/dev/null || true
 fi

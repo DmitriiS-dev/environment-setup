@@ -86,6 +86,20 @@ else
     fail "htop is missing from PATH"
 fi
 
+for tool in fzf zoxide; do
+    if command -v "$tool" >/dev/null 2>&1; then
+        pass "$tool is available"
+    else
+        fail "$tool is missing from PATH"
+    fi
+done
+
+if command -v bat >/dev/null 2>&1 || command -v batcat >/dev/null 2>&1; then
+    pass "bat is available"
+else
+    fail "bat or batcat is missing from PATH"
+fi
+
 # ------------------------------------------------------------------------------
 # 3. Shell & History Tracking (Fish & Atuin)
 # ------------------------------------------------------------------------------
@@ -117,6 +131,21 @@ if [ -f "$HOME/.config/fish/config.fish" ]; then
         pass "config.fish contains eza alias"
     else
         warn "config.fish does not define eza aliases"
+    fi
+    if grep -q "alias cat='bat" "$HOME/.config/fish/config.fish"; then
+        pass "config.fish aliases cat to bat"
+    else
+        warn "config.fish does not define the bat alias"
+    fi
+    if grep -q "zoxide init fish" "$HOME/.config/fish/config.fish"; then
+        pass "config.fish initializes zoxide"
+    else
+        warn "config.fish does not initialize zoxide"
+    fi
+    if grep -q "fzf --fish" "$HOME/.config/fish/config.fish"; then
+        pass "config.fish initializes fzf"
+    else
+        warn "config.fish does not initialize fzf"
     fi
 else
     fail "~/.config/fish/config.fish does not exist"
