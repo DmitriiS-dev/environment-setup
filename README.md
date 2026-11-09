@@ -69,6 +69,9 @@ environment-setup/
 ├── install.sh                     # Main installer entrypoint
 ├── check.sh                       # Automated health check & verification suite
 ├── VERIFY.md                      # Hands-on interactive manual testing guide
+├── config/
+│   ├── fish/config.fish           # Fish aliases, PATH, and tool initialization
+│   └── tmux.conf                  # tmux key bindings and status bar
 ├── scripts/
 │   ├── common.sh                  # Shared logging, sudo handling, and OS/arch detection
 │   ├── 01-prereqs.sh              # Ensures curl, wget, and certificates are installed first
