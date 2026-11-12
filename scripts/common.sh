@@ -59,6 +59,16 @@ setup_sudo() {
     export SUDO
 }
 
+
+# Run apt-get non-interactively with or without sudo, depending on the current user.
+run_apt_get() {
+    if [[ -n "${SUDO:-}" ]]; then
+        $SUDO env DEBIAN_FRONTEND=noninteractive apt-get "$@"
+    else
+        DEBIAN_FRONTEND=noninteractive apt-get "$@"
+    fi
+}
+
 # Detect CPU architecture to download appropriate pre-compiled binaries
 detect_arch() {
     # Retrieve machine hardware name (e.g. x86_64, aarch64)

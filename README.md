@@ -53,6 +53,7 @@ For a step-by-step interactive walkthrough testing every tool and shortcut, chec
 ### 5. Neovim & Development Stack
 * **Neovim 0.10+ / 0.11+**: Fast native plugin loading (`blink.cmp`, `fzf-lua`, `mini.nvim`, `diffview`, `trouble`, etc.).
 * **Clipboard over SSH**: Configured with OSC 52 so copying in Neovim over SSH works directly to your local workstation's clipboard.
+* **Clipboard in Podman/Docker**: Uses OSC 52 to copy yanked text to the host clipboard through a compatible terminal. Container clipboard reads cannot reliably read Windows clipboard contents: enter Insert mode and use your terminal's paste shortcut (for example Ctrl+Shift+V in Windows Terminal). Neovim's `p` and clipboard-register paste reuse the last text yanked inside Neovim without requesting terminal clipboard access.
 * **LSP Runtimes**: Node.js/npm, Python 3/pip, C compiler (`gcc`/`build-essential`) for Mason and Treesitter.
 
 ---

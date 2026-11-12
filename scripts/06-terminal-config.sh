@@ -162,7 +162,8 @@ if command -v fish >/dev/null 2>&1; then
     fi
 
     # Lookup the current user's default login shell
-    CURRENT_SHELL="$(getent passwd "$USER" 2>/dev/null | cut -d: -f7 || echo "$SHELL")"
+    CURRENT_USER="${USER:-$(id -un)}"
+    CURRENT_SHELL="$(getent passwd "$CURRENT_USER" 2>/dev/null | cut -d: -f7 || echo "${SHELL:-}")"
 
     # If current default shell is not fish, change it
     if [ "$CURRENT_SHELL" != "$FISH_PATH" ]; then
@@ -170,6 +171,6 @@ if command -v fish >/dev/null 2>&1; then
         log_info "Changing default login shell to fish ($FISH_PATH)..."
 
         # Try changing shell without password via sudo first, then fallback to unprivileged chsh
-        $SUDO chsh -s "$FISH_PATH" "$USER" 2>/dev/null || chsh -s "$FISH_PATH" "$USER" 2>/dev/null || log_warn "Could not change default shell automatically with chsh. You can run 'chsh -s $(which fish)' manually."
+        $SUDO chsh -s "$FISH_PATH" "$CURRENT_USER" 2>/dev/null || chsh -s "$FISH_PATH" "$CURRENT_USER" 2>/dev/null || log_warn "Could not change default shell automatically with chsh. You can run 'chsh -s $(which fish)' manually."
     fi
 fi

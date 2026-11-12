@@ -41,10 +41,10 @@ if [[ "$OS_FAMILY" == "ubuntu" || "$OS_FAMILY" == "debian" || "$OS_LIKE" == *"de
     $SUDO apt-get update -y
 
     # Upgrade installed packages non-interactively
-    $SUDO DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
+    run_apt_get upgrade -y
 
     # Install terminal applications, build toolchain, and Python runtimes
-    $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    run_apt_get install -y \
         fish tmux htop btop \
         build-essential gcc g++ make \
         python3 python3-pip python3-venv \
