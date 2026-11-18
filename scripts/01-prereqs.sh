@@ -31,7 +31,8 @@ if [[ "$OS_FAMILY" == "ubuntu" || "$OS_FAMILY" == "debian" || "$OS_LIKE" == *"de
     $SUDO apt-get update -y
 
     # Install curl, wget, and SSL/TLS certificates non-interactively without prompting for user input
-    $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y curl wget ca-certificates
+    run_apt_get install -y curl wget ca-certificates
+
 
 # Branch 2: Red Hat family distributions (Oracle Linux, RHEL, CentOS, Rocky Linux, AlmaLinux, Fedora)
 elif [[ "$OS_FAMILY" == "ol" || "$OS_FAMILY" == "rhel" || "$OS_FAMILY" == "centos" || "$OS_FAMILY" == "rocky" || "$OS_FAMILY" == "almalinux" || "$OS_FAMILY" == "fedora" ]]; then

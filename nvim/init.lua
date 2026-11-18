@@ -3,10 +3,18 @@ vim.opt.termguicolors = true
 -- installed early so it's available before colorscheme() runs below
 -- (the rest of the plugin list is installed further down, near PLUGINS)
 vim.pack.add({
-  "https://github.com/Mofiqul/vscode.nvim"
+	"https://github.com/Mofiqul/vscode.nvim",
 })
 
-require("vscode").setup()
+require("vscode").setup({
+	group_overrides = {
+		["@variable.python"] = { link = "Normal" },
+		["@variable.builtin.python"] = { link = "Normal" },
+		["@variable.parameter.python"] = { link = "Normal" },
+		["@variable.member.python"] = { link = "Normal" },
+		["@module.python"] = { link = "Normal" },
+	},
+})
 vim.cmd.colorscheme("vscode")
 
 local function set_transparent() -- set UI component to transparent
@@ -36,7 +44,7 @@ set_transparent()
 -- OPTIONS
 -- ============================================================================
 vim.opt.number = true -- line number
-vim.opt.relativenumber = true-- relative line numbers
+vim.opt.relativenumber = true -- relative line numbers
 vim.opt.cursorline = true -- highlight current line
 vim.opt.wrap = false -- do not wrap code lines by default
 vim.opt.linebreak = true
@@ -69,9 +77,7 @@ vim.opt.synmaxcol = 300 -- syntax highlighting limit
 vim.opt.fillchars = { eob = " " } -- hide "~" on empty lines
 
 local undodir = vim.fn.expand("~/.vim/undodir")
-if
-	vim.fn.isdirectory(undodir) == 0 -- create undodir if nonexistent
-then
+if vim.fn.isdirectory(undodir) == 0 then
 	vim.fn.mkdir(undodir, "p")
 end
 
@@ -100,64 +106,7 @@ vim.opt.modifiable = true -- allow buffer modifications
 vim.g.clipboard = 'osc52'
 vim.opt.clipboard = 'unnamedplus'
 
-if vim.fn.has("win32") == 1 and vim.fn.executable("win32yank.exe") == 1 then
-	vim.g.clipboard = {
-		name = "win32yank",
-		copy = {
-			["+"] = { "win32yank.exe", "-i", "--crlf" },
-			["*"] = { "win32yank.exe", "-i", "--crlf" },
-		},
-		paste = {
-			["+"] = { "win32yank.exe", "-o", "--lf" },
-			["*"] = { "win32yank.exe", "-o", "--lf" },
-		},
-		cache_enabled = 0,
-	}
-elseif vim.fn.has("wsl") == 1 and vim.fn.executable("clip.exe") == 1 then
-	-- WSL clipboard fallback
-	vim.g.clipboard = {
-		name = "wslclip",
-		copy = {
-			["+"] = { "clip.exe" },
-			["*"] = { "clip.exe" },
-		},
-		paste = {
-			["+"] = { "powershell.exe", "-noprofile", "-command", "Get-Clipboard" },
-			["*"] = { "powershell.exe", "-noprofile", "-command", "Get-Clipboard" },
-		},
-		cache_enabled = 0,
-	}
-elseif vim.env.SSH_TTY or vim.env.SSH_CLIENT or vim.env.SSH_CONNECTION or vim.env.TMUX then
-	-- Remote SSH session or tmux: use OSC 52 so yanked text copies to local terminal
-	if vim.ui and vim.ui.clipboard and vim.ui.clipboard.osc52 then
-		vim.g.clipboard = {
-			name = "OSC 52",
-			copy = {
-				["+"] = require("vim.ui.clipboard.osc52").copy("+"),
-				["*"] = require("vim.ui.clipboard.osc52").copy("*"),
-			},
-			paste = {
-				["+"] = require("vim.ui.clipboard.osc52").paste("+"),
-				["*"] = require("vim.ui.clipboard.osc52").paste("*"),
-			},
-		}
-	end
-elseif vim.fn.has("unix") == 1 and vim.fn.executable("xclip") == 0 and vim.fn.executable("xsel") == 0 and vim.fn.executable("wl-copy") == 0 then
-	-- Fallback when no desktop clipboard provider is installed (e.g. headless Linux / VM)
-	if vim.ui and vim.ui.clipboard and vim.ui.clipboard.osc52 then
-		vim.g.clipboard = {
-			name = "OSC 52",
-			copy = {
-				["+"] = require("vim.ui.clipboard.osc52").copy("+"),
-				["*"] = require("vim.ui.clipboard.osc52").copy("*"),
-			},
-			paste = {
-				["+"] = require("vim.ui.clipboard.osc52").paste("+"),
-				["*"] = require("vim.ui.clipboard.osc52").paste("*"),
-			},
-		}
-	end
-end
+require("config.clipboard")
 
 vim.opt.guicursor =
 	"n-v-c:block,i-ci-ve:block,r-cr:hor20,o:hor50,a:blinkwait700-blinkoff400-blinkon250-Cursor/lCursor,sm:block-blinkwait175-blinkoff150-blinkon175" -- cursor blinking and settings
@@ -209,12 +158,11 @@ vim.keymap.set("x", "<leader>p", '"_dP', { desc = "Paste without yanking" })
 vim.keymap.set({ "n", "v" }, "<leader>x", '"_d', { desc = "Delete without yanking" })
 vim.keymap.set({ "v", "x" }, "<C-c>", '"+y', { desc = "Copy selection" })
 vim.keymap.set("n", "<C-v>", '"+p', { desc = "Paste from system clipboard" })
-vim.keymap.set({ "v", "x" }, "<C-v>", '"_d"+P', { desc = "Replace selection from clipboard" })
-vim.keymap.set("i", "<C-v>", '<C-r>+', { desc = "Paste from system clipboard" })
+vim.keymap.set("x", "<C-v>", '"_d"+P', { desc = "Replace selection from clipboard" })
+vim.keymap.set("i", "<C-v>", "<C-r>+", { desc = "Paste from system clipboard" })
 
 vim.keymap.set("n", "<leader>bn", ":bnext<CR>", { desc = "Next buffer" })
 vim.keymap.set("n", "<leader>bp", ":bprevious<CR>", { desc = "Previous buffer" })
-
 
 vim.keymap.set("n", "<leader>sv", ":vsplit<CR>", { desc = "Split window vertically" })
 vim.keymap.set("n", "<leader>sh", ":split<CR>", { desc = "Split window horizontally" })
@@ -249,7 +197,6 @@ end)
 
 vim.keymap.set("n", "<C-s>", "<cmd>w<cr>")
 vim.keymap.set("i", "<C-s>", "<Esc><cmd>w<cr>a")
-
 
 vim.keymap.set("n", "<leader><leader>", function()
 	require("fzf-lua").files()
@@ -726,6 +673,8 @@ require("mason").setup({})
 require("mason-tool-installer").setup({
 	ensure_installed = {
 		"basedpyright",
+		"clangd",
+		"efm",
 		"stylua",
 		"ruff",
 		"prettierd",
@@ -760,6 +709,12 @@ vim.api.nvim_create_autocmd("User", {
 		end
 		if vim.fn.executable("gcc") ~= 1 and vim.fn.executable("clang") ~= 1 then
 			table.insert(missing, "C compiler (gcc/clang) [required to build treesitter parsers]")
+		end
+		if vim.fn.executable("unzip") ~= 1 then
+			table.insert(missing, "unzip [required to unpack StyLua and clangd]")
+		end
+		if vim.fn.executable("go") ~= 1 then
+			table.insert(missing, "Go [required to install gofumpt]")
 		end
 
 		if #missing > 0 then
@@ -800,6 +755,8 @@ vim.diagnostic.config({
 		spacing = 4,
 		source = "if_many",
 		format = format_diagnostic,
+		current_line = true,
+		severity = { min = vim.diagnostic.severity.WARN },
 	},
 	signs = {
 		text = {
@@ -809,7 +766,7 @@ vim.diagnostic.config({
 			[vim.diagnostic.severity.HINT] = diagnostic_signs.Hint,
 		},
 	},
-	underline = true,
+	underline = { severity = vim.diagnostic.severity.ERROR },
 	update_in_insert = false,
 	severity_sort = true,
 	float = {
@@ -861,6 +818,11 @@ local function lsp_on_attach(ev)
 
 	local bufnr = ev.buf
 	local opts = { noremap = true, silent = true, buffer = bufnr }
+
+	if client.name == "basedpyright" then
+		-- Keep Python's syntax colours without a second layer of semantic colours.
+		vim.lsp.semantic_tokens.enable(false, { bufnr = bufnr, client_id = client.id })
+	end
 
 	vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
 	vim.keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
@@ -1021,7 +983,8 @@ local function find_python_root(bufnr)
 		end
 	end
 
-	local start_dir = buffer_name ~= "" and (vim.fn.isdirectory(buffer_name) == 1 and buffer_name or vim.fs.dirname(buffer_name))
+	local start_dir = buffer_name ~= ""
+			and (vim.fn.isdirectory(buffer_name) == 1 and buffer_name or vim.fs.dirname(buffer_name))
 		or vim.fn.getcwd()
 	local marker = vim.fs.find(python_root_markers, { path = start_dir, upward = true })[1]
 	return marker and vim.fs.dirname(marker) or vim.fn.getcwd()
@@ -1033,7 +996,9 @@ vim.lsp.config("basedpyright", {
 	end,
 	before_init = function(params, config)
 		local root = config.root_dir
-			or (params.workspaceFolders and params.workspaceFolders[1] and vim.uri_to_fname(params.workspaceFolders[1].uri))
+			or (params.workspaceFolders and params.workspaceFolders[1] and vim.uri_to_fname(
+				params.workspaceFolders[1].uri
+			))
 			or (params.rootUri and vim.uri_to_fname(params.rootUri))
 			or vim.fn.getcwd()
 		local venv = find_python_venv(root)
@@ -1041,8 +1006,7 @@ vim.lsp.config("basedpyright", {
 			return
 		end
 
-		local python_bin = vim.fn.has("win32") == 1
-			and vim.fs.joinpath(venv, "Scripts", "python.exe")
+		local python_bin = vim.fn.has("win32") == 1 and vim.fs.joinpath(venv, "Scripts", "python.exe")
 			or vim.fs.joinpath(venv, "bin", "python")
 		if vim.fn.executable(python_bin) ~= 1 then
 			return
@@ -1155,69 +1119,4 @@ vim.lsp.enable({
 -- ============================================================================
 -- TERMINAL
 -- ============================================================================
-vim.api.nvim_create_autocmd("TermClose", {
-	group = augroup,
-	callback = function()
-		if vim.v.event.status == 0 then
-			vim.api.nvim_buf_delete(0, {})
-		end
-	end,
-})
-
-vim.api.nvim_create_autocmd("TermOpen", {
-	group = augroup,
-	callback = function()
-		vim.opt_local.number = false
-		vim.opt_local.relativenumber = false
-		vim.opt_local.signcolumn = "no"
-	end,
-})
-
-local terminal_state = { buf = nil, win = nil }
-
-local function terminal_command()
-	if vim.fn.has("win32") == 1 then
-		for _, shell in ipairs({ "pwsh.exe", "powershell.exe" }) do
-			if vim.fn.executable(shell) == 1 then
-				return { vim.fn.exepath(shell), "-NoLogo" }
-			end
-		end
-	else
-		-- On Linux/macOS, prefer fish if installed, otherwise fallback to default shell
-		if vim.fn.executable("fish") == 1 then
-			return { vim.fn.exepath("fish") }
-		end
-	end
-	return vim.o.shell
-end
-
-local function toggle_bottom_terminal()
-	if terminal_state.win and vim.api.nvim_win_is_valid(terminal_state.win) then
-		vim.api.nvim_win_close(terminal_state.win, false)
-		terminal_state.win = nil
-		return
-	end
-
-	vim.cmd("botright 15split")
-	if not terminal_state.buf or not vim.api.nvim_buf_is_valid(terminal_state.buf) then
-		vim.cmd("enew")
-		terminal_state.buf = vim.api.nvim_get_current_buf()
-		vim.bo[terminal_state.buf].bufhidden = "hide"
-		vim.fn.termopen(terminal_command())
-	else
-		vim.api.nvim_win_set_buf(0, terminal_state.buf)
-	end
-
-	terminal_state.win = vim.api.nvim_get_current_win()
-	vim.cmd("startinsert")
-end
-
-vim.keymap.set("n", "<leader>t", toggle_bottom_terminal, { silent = true, desc = "Toggle bottom terminal" })
-vim.keymap.set("n", "<C-`>", toggle_bottom_terminal, { silent = true, desc = "Toggle bottom terminal" })
-vim.keymap.set("n", "<C-@>", toggle_bottom_terminal, { silent = true, desc = "Toggle bottom terminal" })
-vim.keymap.set("n", "<C-'>", toggle_bottom_terminal, { silent = true, desc = "Toggle bottom terminal" })
-vim.keymap.set("t", "<C-`>", toggle_bottom_terminal, { silent = true, desc = "Toggle bottom terminal" })
-vim.keymap.set("t", "<C-@>", toggle_bottom_terminal, { silent = true, desc = "Toggle bottom terminal" })
-vim.keymap.set("t", "<C-'>", toggle_bottom_terminal, { silent = true, desc = "Toggle bottom terminal" })
-vim.keymap.set("t", "<Esc>", "<C-\\><C-n>", { noremap = true, silent = true, desc = "Terminal normal mode" })
-vim.keymap.set("t", "<C-q>", toggle_bottom_terminal, { silent = true, desc = "Close bottom terminal" })
+require("config.terminal")
