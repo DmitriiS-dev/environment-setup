@@ -118,7 +118,9 @@ For Python, use `gd`, `gf`, or `Space gd` on an enum, class, function, or import
 
 The minimap shows source-code structure and highlights diagnostics from Neovim's diagnostic API, including BasedPyright errors.
 
-The right scrollbar always shows error, warning, information, and hint markers across the file. Inline messages are shortened so they stay on-screen; use `Space d`, `Space D`, or `Space xx` for the complete message and problem list.
+The right scrollbar shows error, warning, information, and hint markers across the file. Only errors are underlined; shortened inline errors and warnings appear on the current line. Use `Space d`, `Space D`, or `Space xx` for all diagnostic details, including information and hints.
+
+Python uses neutral variable, parameter, attribute, and module names while keeping syntax colours for keywords, strings, functions, and types. BasedPyright's additional semantic colouring is disabled; completion, navigation, and diagnostics remain enabled.
 
 ## Git
 

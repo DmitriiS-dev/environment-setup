@@ -44,7 +44,10 @@ For a step-by-step interactive walkthrough testing every tool and shortcut, chec
 * **tmux**: Terminal multiplexer configured with 24-bit TrueColor support, mouse scrolling, vim keybindings, and easy window/pane splits (`|` and `-`).
 
 ### 3. Modern CLI Utilities
-* **eza**: Modern, colorful replacement for `ls` with filetype indicators, git status, and tree views.
+* **fzf**: Fuzzy finder with Fish key bindings and completions.
+* **eza**: Modern, colorful replacement for `ls`; Fish aliases include `ls`, `ll`, and `lt`.
+* **zoxide**: Smart directory navigation initialized in Fish (use `z`).
+* **bat**: Syntax-highlighted file viewer aliased as `cat` (uses `batcat` where that is the package's executable name).
 * **btop & htop**: Beautiful and powerful interactive system monitors for CPU, memory, disks, and processes.
 
 ### 4. Firewall & Security
@@ -53,7 +56,8 @@ For a step-by-step interactive walkthrough testing every tool and shortcut, chec
 ### 5. Neovim & Development Stack
 * **Neovim 0.10+ / 0.11+**: Fast native plugin loading (`blink.cmp`, `fzf-lua`, `mini.nvim`, `diffview`, `trouble`, etc.).
 * **Clipboard over SSH**: Configured with OSC 52 so copying in Neovim over SSH works directly to your local workstation's clipboard.
-* **LSP Runtimes**: Node.js/npm, Python 3/pip, C compiler (`gcc`/`build-essential`) for Mason and Treesitter.
+* **Clipboard in Podman/Docker**: Uses OSC 52 to copy yanked text to the host clipboard through a compatible terminal. Container clipboard reads cannot reliably read Windows clipboard contents: enter Insert mode and use your terminal's paste shortcut (for example Ctrl+Shift+V in Windows Terminal). Neovim's `p` and clipboard-register paste reuse the last text yanked inside Neovim without requesting terminal clipboard access.
+* **LSP Runtimes**: Node.js/npm, Python 3 with pip/venv support, Go (for gofumpt), a C compiler (`gcc`/`build-essential`), and unzip for Mason and Treesitter.
 
 ---
 
@@ -66,6 +70,9 @@ environment-setup/
 ├── install.sh                     # Main installer entrypoint
 ├── check.sh                       # Automated health check & verification suite
 ├── VERIFY.md                      # Hands-on interactive manual testing guide
+├── config/
+│   ├── fish/config.fish           # Fish aliases, PATH, and tool initialization
+│   └── tmux.conf                  # tmux key bindings and status bar
 ├── scripts/
 │   ├── common.sh                  # Shared logging, sudo handling, and OS/arch detection
 │   ├── 01-prereqs.sh              # Ensures curl, wget, and certificates are installed first
@@ -103,3 +110,28 @@ environment-setup/
    nvim
    ```
    Plugins and Mason tools will install automatically on first launch.
+
+### Neovim sidebar redraw artifacts
+
+If scrolling the file tree shows duplicated rows and `Ctrl+L` clears them, the
+display is stale; this does not mean files have been duplicated. Until redrawn,
+the visible filename may not match the entry under the mouse, so redraw before
+opening anything.
+
+The generated tmux config uses `default-terminal "tmux-256color"` so applications
+see tmux's capabilities rather than those of an xterm. For an existing setup,
+change that line in `~/.tmux.conf`, run `tmux source-file ~/.tmux.conf`, then open
+a **new tmux window** and restart Neovim there. Existing panes keep their old
+`TERM`. `echo $TERM` in the new window should print `tmux-256color`; do not force
+this value outside tmux.
+
+If the artifact persists, compare `nvim .` inside and outside tmux in the same
+container. If it only happens inside tmux, check/update tmux and the Windows
+terminal application. If it also happens outside tmux, try
+`nvim --clean '+set mouse=a' .` to distinguish a terminal/Neovim issue from this
+plugin configuration (the clean session uses the built-in directory browser).
+
+Neovim's platform-specific clipboard handling and bottom-terminal configuration
+live in `nvim/lua/config/clipboard.lua` and `nvim/lua/config/terminal.lua`;
+`init.lua` loads them automatically. Copy the whole `nvim/` directory when
+updating the installed config, not just `init.lua`.

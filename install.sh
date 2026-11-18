@@ -33,6 +33,15 @@ ensure_local_bin
 # Display an informative banner indicating which OS and CPU architecture were identified
 log_info "Starting environment setup for $OS_FAMILY ($ARCH_TYPE)..."
 
+# Show the tools this installer sets up before running the installation steps
+echo "Tools to be installed/configured:"
+echo "  • curl, wget, certificates — download prerequisites"
+echo "  • Fish, tmux, Atuin — shell, multiplexer, and history"
+echo "  • fzf, eza, zoxide, bat — fuzzy search, ls, directory navigation, and cat"
+echo "  • Neovim, btop, htop, Node.js, Python, GCC — editor, monitors, and runtimes"
+echo "  • UFW/firewalld — firewall configuration"
+echo ""
+
 # Step 1: Ensure baseline tools (curl, wget, ca-certificates) are installed
 bash "$SCRIPT_DIR/scripts/01-prereqs.sh"
 
@@ -60,20 +69,6 @@ echo -e "${GREEN}${BOLD}             🎉 Setup Completed Successfully! 🎉    
 echo -e "${GREEN}${BOLD}========================================================================${RESET}"
 
 # Print an empty line
-echo ""
-
-# Display a checklist of all components installed and configured
-echo -e "Installed & configured tools:"
-echo -e "  • ${BOLD}curl & wget${RESET} (baseline tools and certificates)"
-echo -e "  • ${BOLD}Neovim${RESET} (with blink.cmp, fzf-lua, mini.nvim, OSC 52 clipboard)"
-echo -e "  • ${BOLD}Fish Shell${RESET} (configured at ~/.config/fish/config.fish)"
-echo -e "  • ${BOLD}Atuin${RESET} (encrypted SQLite command history search via Ctrl+R)"
-echo -e "  • ${BOLD}tmux${RESET} (configured with mouse support & vim navigation)"
-echo -e "  • ${BOLD}eza${RESET} (modern replacement for ls)"
-echo -e "  • ${BOLD}btop & htop${RESET} (system resource monitors)"
-echo -e "  • ${BOLD}UFW Firewall${RESET} (configured with SSH, HTTP/80, and HTTPS/443 allowed)"
-
-# Print another empty line
 echo ""
 
 # Provide the user with the next command to execute to enter their new shell

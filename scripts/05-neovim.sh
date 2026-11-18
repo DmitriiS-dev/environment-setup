@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# 05-neovim.sh: Neovim installation (ensuring v0.10+ / v0.11+) and dotfile sync
+# 05-neovim.sh: Neovim installation (ensuring v0.12+) and dotfile sync
 # Installs official pre-compiled Neovim binary and copies the repo nvim/ config to ~/.config/nvim.
 # ==============================================================================
 
@@ -23,7 +23,7 @@ detect_arch
 ensure_local_bin
 
 # Print setup banner
-log_info "Setting up Neovim (v0.10+ / v0.11+)..."
+log_info "Setting up Neovim (v0.12+)..."
 
 # Flag to track whether we must download and install a fresh Neovim release
 NEED_NVIM=false
@@ -42,10 +42,10 @@ else
     # Extract minor version number (e.g. 9 or 10)
     MINOR=$(echo "$NVIM_VER" | cut -d. -f2)
 
-    # Neovim 0.10.0+ is required for built-in vim.pack and OSC 52 remote clipboard support
-    if [ "$MAJOR" -lt 1 ] && [ "$MINOR" -lt 10 ]; then
+    # vim.pack requires Neovim 0.12 or newer.
+    if [ "$MAJOR" -lt 1 ] && [ "$MINOR" -lt 12 ]; then
         # Warn user that system repo package is too old
-        log_warn "Installed Neovim version ($NVIM_VER) is older than 0.10.0. Upgrading to latest prebuilt release..."
+        log_warn "Installed Neovim version ($NVIM_VER) is older than 0.12.0. Upgrading to latest prebuilt release..."
         # Mark for upgrade
         NEED_NVIM=true
     fi
@@ -87,11 +87,12 @@ if [ -d "$REPO_ROOT/nvim" ]; then
     mkdir -p "$HOME/.config/nvim"
 
     # Recursively copy all config files (init.lua, lockfiles, docs) into ~/.config/nvim
-    cp -r "$REPO_ROOT/nvim/"* "$HOME/.config/nvim/" 2>/dev/null || true
+    cp -R "$REPO_ROOT/nvim/." "$HOME/.config/nvim/"
 
     # Confirm config synchronization
     log_success "Neovim configuration copied to ~/.config/nvim"
 else
     # Warn if the config directory was not found
-    log_warn "No nvim config directory found at $REPO_ROOT/nvim"
+    log_error "No nvim config directory found at $REPO_ROOT/nvim"
+    exit 1
 fi

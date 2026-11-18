@@ -2,7 +2,7 @@
 # ==============================================================================
 # 02-system-packages.sh: System update, upgrade, packages, runtimes & eza
 # Updates distro repositories, installs terminal tools (tmux, fish, btop, eza),
-# and provides build runtimes (gcc/make, Python, Node.js) needed by Mason/LSPs.
+# and provides build runtimes (gcc/make, Python, Node.js, Go) needed by Mason/LSPs.
 # ==============================================================================
 
 # Exit immediately if a command exits with a non-zero status (-e),
@@ -41,14 +41,20 @@ if [[ "$OS_FAMILY" == "ubuntu" || "$OS_FAMILY" == "debian" || "$OS_LIKE" == *"de
     $SUDO apt-get update -y
 
     # Upgrade installed packages non-interactively
-    $SUDO DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
+    run_apt_get upgrade -y
 
     # Install terminal applications, build toolchain, and Python runtimes
-    $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    run_apt_get install -y \
         fish tmux htop btop \
         build-essential gcc g++ make \
         python3 python3-pip python3-venv \
+        golang-go \
         unzip tar xclip
+
+    # Install modern shell utilities separately so unavailable packages do not block setup
+    $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y fzf || log_warn "Could not install fzf from apt."
+    $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y bat || log_warn "Could not install bat from apt."
+    $SUDO DEBIAN_FRONTEND=noninteractive apt-get install -y zoxide || log_warn "Could not install zoxide from apt."
 
     # Check if 'eza' is already installed
     if ! command -v eza >/dev/null 2>&1; then
@@ -96,8 +102,13 @@ elif [[ "$OS_FAMILY" == "ol" || "$OS_FAMILY" == "rhel" || "$OS_FAMILY" == "cento
     $SUDO $PKG_MGR install -y \
         fish tmux htop btop \
         gcc gcc-c++ make \
-        python3 python3-pip \
+        python3 python3-pip golang \
         unzip tar xclip 2>/dev/null || true
+
+    # Install modern shell utilities without blocking setup when a package is unavailable
+    $SUDO $PKG_MGR install -y fzf 2>/dev/null || log_warn "Could not install fzf from $PKG_MGR."
+    $SUDO $PKG_MGR install -y bat 2>/dev/null || log_warn "Could not install bat from $PKG_MGR."
+    $SUDO $PKG_MGR install -y zoxide 2>/dev/null || log_warn "Could not install zoxide from $PKG_MGR."
 
     # Install eza from repositories
     $SUDO $PKG_MGR install -y eza 2>/dev/null || true
@@ -111,9 +122,9 @@ elif [[ "$OS_FAMILY" == "ol" || "$OS_FAMILY" == "rhel" || "$OS_FAMILY" == "cento
 elif [[ "$OS_FAMILY" == "arch" || "$OS_LIKE" == *"arch"* ]]; then
     # Full system update and package installation using pacman
     $SUDO pacman -Syu --noconfirm \
-        fish tmux htop btop eza \
+        fish tmux htop btop eza fzf zoxide bat \
         base-devel python python-pip \
-        nodejs npm unzip xclip 2>/dev/null || true
+        nodejs npm go unzip xclip 2>/dev/null || true
 fi
 
 # Fallback: if eza package was unavailable in the distro repositories, download prebuilt binary
