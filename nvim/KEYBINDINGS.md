@@ -122,6 +122,8 @@ The right scrollbar shows error, warning, information, and hint markers across t
 
 Python uses neutral variable, parameter, attribute, and module names while keeping syntax colours for keywords, strings, functions, and types. BasedPyright's additional semantic colouring is disabled; completion, navigation, and diagnostics remain enabled.
 
+Shell scripts (`.sh` and `.bash`) use Bash Language Server with ShellCheck for syntax errors and shell-code warnings. Mason installs both automatically; shfmt formats shell scripts on save. Use `Space d` for diagnostic details or `Space xx` for the full list.
+
 ## Git
 
 | Keys | Mode | Action |
@@ -252,4 +254,4 @@ Press `Space` and wait:
 :TSInstall     Install a Treesitter parser
 ```
 
-This file documents the configuration in `init.lua`. When adding a new mapping, add it here too so the cheat sheet stays current.
+`init.lua` loads the modules under `lua/config/`. General shortcuts live in `keymaps.lua`; feature-specific shortcuts live beside their setup (for example `git.lua`, `files.lua`, `terminal.lua`, and `lsp/keymaps.lua`). Update this cheat sheet when changing a mapping.

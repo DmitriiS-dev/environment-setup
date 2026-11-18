@@ -1,0 +1,30 @@
+vim.pack.add({
+	"https://www.github.com/echasnovski/mini.nvim",
+	"https://github.com/nvim-lualine/lualine.nvim",
+	"https://www.github.com/ibhagwan/fzf-lua",
+	"https://www.github.com/nvim-tree/nvim-tree.lua",
+	{
+		src = "https://github.com/nvim-treesitter/nvim-treesitter",
+		branch = "main",
+		build = ":TSUpdate",
+	},
+	"https://github.com/JoosepAlviste/nvim-ts-context-commentstring",
+	"https://www.github.com/neovim/nvim-lspconfig",
+	"https://github.com/mason-org/mason.nvim",
+	"https://github.com/creativenull/efmls-configs-nvim",
+	"https://github.com/petertriho/nvim-scrollbar",
+	"https://github.com/WhoIsSethDaniel/mason-tool-installer.nvim",
+	"https://github.com/nvimdev/lspsaga.nvim",
+	"https://github.com/folke/trouble.nvim",
+	"https://github.com/tpope/vim-fugitive",
+	"https://github.com/nvim-lua/plenary.nvim",
+	"https://github.com/sindrets/diffview.nvim",
+	"https://github.com/folke/which-key.nvim",
+	"https://github.com/folke/zen-mode.nvim",
+	{
+		-- v2 needs blink.lib installed separately; keep v1 until that migration.
+		src = "https://github.com/saghen/blink.cmp",
+		version = vim.version.range("1.*"),
+	},
+	"https://github.com/mrcjkb/rustaceanvim",
+})

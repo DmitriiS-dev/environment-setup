@@ -1,148 +1,105 @@
 #!/usr/bin/env bash
-# ==============================================================================
-# common.sh: Shared helper functions and environment detection
-# Included by all modular setup scripts for consistent logging, permissions, and OS checks.
-# ==============================================================================
 
-# Exit immediately if a command exits with a non-zero status (-e),
-# treat unset variables as an error when substituting (-u),
-# and prevent errors in a pipeline from being masked (-o pipefail).
-set -euo pipefail
+COMMON_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$COMMON_DIR/.." && pwd)"
 
-# ANSI color codes for terminal output formatting
-BOLD="\033[1m"       # Bold text style
-GREEN="\033[0;32m"   # Success green color
-BLUE="\033[0;34m"    # Informational blue color
-YELLOW="\033[0;33m"  # Warning yellow color
-RED="\033[0;31m"     # Error red color
-RESET="\033[0m"      # Reset all formatting back to terminal default
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[0;33m'
+RED='\033[0;31m'
+RESET='\033[0m'
 
-# Print an informational message prefixed with a blue arrow (==>)
-log_info() {
-    echo -e "${BLUE}${BOLD}==>${RESET} ${BOLD}$1${RESET}"
-}
+log_info() { printf '%b==>%b %s\n' "$BLUE" "$RESET" "$*"; }
+log_success() { printf '%b==>%b %s\n' "$GREEN" "$RESET" "$*"; }
+log_warn() { printf '%bWARNING:%b %s\n' "$YELLOW" "$RESET" "$*" >&2; }
+log_error() { printf '%bERROR:%b %s\n' "$RED" "$RESET" "$*" >&2; }
+has() { command -v "$1" >/dev/null 2>&1; }
 
-# Print a success confirmation message prefixed with a green arrow (==>)
-log_success() {
-    echo -e "${GREEN}${BOLD}==>${RESET} ${GREEN}$1${RESET}"
-}
-
-# Print a warning message in yellow
-log_warn() {
-    echo -e "${YELLOW}${BOLD}WARNING:${RESET} $1"
-}
-
-# Print a critical error message in red
-log_error() {
-    echo -e "${RED}${BOLD}ERROR:${RESET} $1"
-}
-
-# Resolve whether 'sudo' needs to be prepended to package manager commands
 setup_sudo() {
-    # Initialize SUDO variable as empty string
     SUDO=""
-
-    # Check if current effective user ID is not 0 (0 means root)
     if [ "$(id -u)" -ne 0 ]; then
-        # Check if the 'sudo' binary exists on the system PATH
-        if command -v sudo >/dev/null 2>&1; then
-            # Set the prefix to 'sudo' so subsequent commands execute with root permissions
-            SUDO="sudo"
-        else
-            # Exit with an error if user is non-root and sudo is unavailable
-            log_error "This script requires root privileges or sudo to install system packages."
-            exit 1
+        if ! has sudo; then
+            log_error "Root or sudo is required to install system packages."
+            return 1
         fi
+        SUDO=sudo
     fi
-
-    # Export SUDO so subshells and invoked commands inherit it
     export SUDO
 }
 
-
-# Run apt-get non-interactively with or without sudo, depending on the current user.
-run_apt_get() {
-    if [[ -n "${SUDO:-}" ]]; then
-        $SUDO env DEBIAN_FRONTEND=noninteractive apt-get "$@"
+run_root() {
+    if [ -n "${SUDO:-}" ]; then
+        "$SUDO" "$@"
     else
-        DEBIAN_FRONTEND=noninteractive apt-get "$@"
+        "$@"
     fi
 }
 
-# Detect CPU architecture to download appropriate pre-compiled binaries
-detect_arch() {
-    # Retrieve machine hardware name (e.g. x86_64, aarch64)
-    ARCH="$(uname -m)"
+run_apt_get() {
+    run_root env DEBIAN_FRONTEND=noninteractive apt-get "$@"
+}
 
-    # Match hardware architecture against known platforms
-    case "$ARCH" in
-        # Intel/AMD 64-bit processors
-        x86_64|amd64)
-            ARCH_TYPE="x86_64"
-            NVIM_ARCH="linux-x86_64"
+detect_arch() {
+    case "$(uname -m)" in
+        x86_64 | amd64)
+            ARCH_TYPE=x86_64
+            NVIM_ARCH=linux-x86_64
             ;;
-        # ARM 64-bit processors (common on Oracle Cloud Ampere A1 shapes)
-        aarch64|arm64)
-            ARCH_TYPE="arm64"
-            NVIM_ARCH="linux-arm64"
+        aarch64 | arm64)
+            ARCH_TYPE=arm64
+            NVIM_ARCH=linux-arm64
             ;;
-        # Any other CPU architecture
         *)
-            log_warn "Unknown architecture $ARCH, some prebuilt binaries may fall back to package managers."
-            ARCH_TYPE="$ARCH"
+            ARCH_TYPE="$(uname -m)"
             NVIM_ARCH=""
             ;;
     esac
-
-    # Export detected architecture variables for child scripts
-    export ARCH ARCH_TYPE NVIM_ARCH
+    export ARCH_TYPE NVIM_ARCH
 }
 
-# Inspect /etc/os-release to detect the Linux distribution family
 detect_os() {
-    # Initialize variables
-    OS_FAMILY=""
-    OS_LIKE=""
-
-    # Check if standard Linux OS release file exists
-    if [ -f /etc/os-release ]; then
-        # Source the key-value pairs from os-release (contains ID, ID_LIKE, NAME, etc.)
-        # shellcheck disable=SC1091
-        . /etc/os-release
-
-        # Distribution ID (e.g. ubuntu, debian, ol, rhel, fedora, arch)
-        OS_FAMILY="$ID"
-
-        # Upstream distribution family if derivative (e.g. "debian" for Ubuntu, or "rhel fedora" for Rocky/CentOS)
-        OS_LIKE="${ID_LIKE:-}"
-    else
-        # Fail early if run on a non-standard or unsupported system
-        log_error "Could not detect operating system (/etc/os-release not found)."
-        exit 1
+    local ID="" ID_LIKE=""
+    if [ ! -r /etc/os-release ]; then
+        log_error "Cannot detect Linux distribution: /etc/os-release is missing."
+        return 1
     fi
-
-    # Export OS identifiers for branching in installer scripts
-    export OS_FAMILY OS_LIKE
+    # shellcheck disable=SC1091
+    source /etc/os-release
+    OS_FAMILY="$ID"
+    export OS_FAMILY
+    case " $ID $ID_LIKE " in
+        *" debian "* | *" ubuntu "*) OS_GROUP=debian ;;
+        *" rhel "* | *" fedora "* | *" ol "* | *" centos "* | *" rocky "* | *" almalinux "*) OS_GROUP=rhel ;;
+        *" arch "*) OS_GROUP=arch ;;
+        *)
+            log_error "Unsupported Linux distribution: $ID ($ID_LIKE)"
+            return 1
+            ;;
+    esac
 }
 
-# Ensure the local user's personal binary directory exists and is present in $PATH
+use_local_bin() {
+    export PATH="$HOME/.local/bin:$HOME/.atuin/bin:$PATH"
+}
+
 ensure_local_bin() {
-    # Create ~/.local/bin directory if it does not already exist (-p creates parent folders safely)
     mkdir -p "$HOME/.local/bin"
+    use_local_bin
+}
 
-    # Check whether ~/.local/bin is already part of the current PATH variable
-    case ":$PATH:" in
-        # If already present anywhere in PATH, do nothing
-        *":$HOME/.local/bin:"*) ;;
-        # If missing from PATH, prepend it so user-installed binaries take priority
-        *) export PATH="$HOME/.local/bin:$PATH" ;;
-    esac
+setup_environment() {
+    setup_sudo || return
+    detect_arch
+    detect_os || return
+    ensure_local_bin || return
+    # shellcheck disable=SC1090,SC1091
+    source "$REPO_ROOT/scripts/os/$OS_GROUP.sh"
+}
 
-    # Also include ~/.atuin/bin if present
-    if [ -d "$HOME/.atuin/bin" ]; then
-        case ":$PATH:" in
-            *":$HOME/.atuin/bin:"*) ;;
-            *) export PATH="$HOME/.atuin/bin:$PATH" ;;
-        esac
-    fi
+neovim_is_supported() {
+    has nvim || return 1
+    local version
+    version="$(nvim --version)" || return 1
+    [[ "$version" =~ NVIM\ v([0-9]+)\.([0-9]+) ]] || return 1
+    ((BASH_REMATCH[1] >= 1 || BASH_REMATCH[2] >= 12))
 }

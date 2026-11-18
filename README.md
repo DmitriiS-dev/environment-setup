@@ -1,131 +1,150 @@
 # Environment Setup
 
-Quick, automated setup script for Linux environments (Ubuntu, Debian, Oracle Linux, Fedora, Arch) and WSL, tailored for terminal development with **Neovim**, **Fish shell**, **Atuin**, **tmux**, and modern CLI tools.
+A shared terminal development setup for Ubuntu/Debian, Fedora/RHEL/Oracle Linux,
+Arch, and Linux distributions running under WSL. Plain Bash and Lua; no framework
+or configuration generator.
 
-## Pre-Installation:
-Setup for git:
-```bash
-sudo apt update
-sudo apt install git -y
-```
+## Install
 
-## Installation
-
-Clone the repository and run `install.sh`:
+Install Git with your distribution's package manager, then:
 
 ```bash
 git clone https://github.com/DmitriiS-dev/environment-setup.git
 cd environment-setup
-chmod +x install.sh
-./install.sh
+bash install.sh
+bash check.sh
 ```
 
-## Verify Your Setup
+**The installer upgrades system packages, overwrites the installed Neovim,
+Fish and tmux configs, changes the login shell to Fish, and enables a firewall
+allowing SSH/22, HTTP/80 and HTTPS/443.** Back up personal configs first.
+Firewall setup needs host privileges; a restricted container may reject it.
+Failed required steps stop the installer instead of reporting success.
 
-After installation completes, verify everything with:
+Individual steps remain runnable, for example:
 
 ```bash
-chmod +x check.sh
-./check.sh
+bash scripts/05-neovim.sh          # Install Neovim if needed, then copy its config
+bash scripts/06-terminal-config.sh # Copy Fish/tmux configs and set the login shell
 ```
 
-For a step-by-step interactive walkthrough testing every tool and shortcut, check out the [Verification Guide](VERIFY.md).
+## Included
 
----
+| Area | Shared features |
+| --- | --- |
+| Shell | Fish, eza aliases, Atuin history (`Ctrl+R`) |
+| Terminal | tmux, true colour, mouse support, Vim-style pane navigation |
+| Editor | Neovim **0.12+**, native `vim.pack`, file tree, fuzzy search, Git tools |
+| Language tools | Treesitter, Mason, LSP, completion, diagnostics and formatting |
+| Runtimes | C compiler, Python with pip/venv, Node/npm, Go, unzip |
+| Utilities | curl, wget, certificates, btop, htop |
+| Firewall | UFW, with firewalld fallback on RHEL-family systems |
 
-## What Gets Installed & Configured
+Plugins and Mason tools install on Neovim's first launch. See
+[Neovim keybindings](nvim/KEYBINDINGS.md) for editor shortcuts.
 
-### 1. Baseline Tools & Prerequisites
-* **curl, wget & certificates**: Baseline web and download tools installed first.
-
-### 2. Terminal Shell & Environment
-* **Fish Shell**: Modern, user-friendly interactive shell with syntax highlighting and autosuggestions.
-* **Atuin**: Magically records your shell command history into an encrypted SQLite database. Search across commands and directories with `Ctrl+R`.
-* **tmux**: Terminal multiplexer configured with 24-bit TrueColor support, mouse scrolling, vim keybindings, and easy window/pane splits (`|` and `-`).
-
-### 3. Modern CLI Utilities
-* **eza**: Modern, colorful replacement for `ls` with filetype indicators, git status, and tree views.
-* **btop & htop**: Beautiful and powerful interactive system monitors for CPU, memory, disks, and processes.
-
-### 4. Firewall & Security
-* **UFW Firewall**: Configured and enabled out of the box with safe inbound rules for **SSH** (port 22), **HTTP** (port 80), and **HTTPS** (port 443).
-
-### 5. Neovim & Development Stack
-* **Neovim 0.10+ / 0.11+**: Fast native plugin loading (`blink.cmp`, `fzf-lua`, `mini.nvim`, `diffview`, `trouble`, etc.).
-* **Clipboard over SSH**: Configured with OSC 52 so copying in Neovim over SSH works directly to your local workstation's clipboard.
-* **Clipboard in Podman/Docker**: Uses OSC 52 to copy yanked text to the host clipboard through a compatible terminal. Container clipboard reads cannot reliably read Windows clipboard contents: enter Insert mode and use your terminal's paste shortcut (for example Ctrl+Shift+V in Windows Terminal). Neovim's `p` and clipboard-register paste reuse the last text yanked inside Neovim without requesting terminal clipboard access.
-* **LSP Runtimes**: Node.js/npm, Python 3 with pip/venv support, Go (for gofumpt), a C compiler (`gcc`/`build-essential`), and unzip for Mason and Treesitter.
-
----
-
-## Project Structure
-
-The installer is modularized into separate scripts under `scripts/`, making each component easy to read, test, or run independently:
+## Where to make changes
 
 ```text
-environment-setup/
-├── install.sh                     # Main installer entrypoint
-├── check.sh                       # Automated health check & verification suite
-├── VERIFY.md                      # Hands-on interactive manual testing guide
-├── scripts/
-│   ├── common.sh                  # Shared logging, sudo handling, and OS/arch detection
-│   ├── 01-prereqs.sh              # Ensures curl, wget, and certificates are installed first
-│   ├── 02-system-packages.sh      # System upgrade, packages, runtimes (Node, Python), & eza
-│   ├── 03-security.sh             # UFW / firewall rules (SSH, HTTP 80, HTTPS 443)
-│   ├── 04-atuin.sh                # Atuin shell history installation
-│   ├── 05-neovim.sh               # Neovim (v0.10+) binary & configuration sync
-│   └── 06-terminal-config.sh      # Fish shell configuration, tmux.conf, default shell setup
-└── nvim/                          # Neovim dotfiles & Lua configurations
+install.sh                 Ordered setup steps
+check.sh                   Read-only health checks and summary
+scripts/
+  common.sh                Logging, paths, privilege and OS detection
+  os/
+    debian.sh              apt packages and eza repository
+    rhel.sh                dnf/yum packages and firewall fallback
+    arch.sh                pacman packages
+  01-prereqs.sh            Download tools and certificates
+  02-system-packages.sh    Shared packages plus the selected OS adapter
+  03-security.sh           Shared firewall rules
+  04-atuin.sh              Atuin installation
+  05-neovim.sh             Neovim installation and config copy
+  06-terminal-config.sh    Terminal config copy and login shell
+  install-eza.sh           Release-binary fallback
+  checks/                  Tools, configs and firewall health checks
+config/
+  fish/config.fish         Shared Fish config
+  tmux.conf                Shared tmux config
+nvim/
+  init.lua                 Explicit module load order
+  lua/config/              Focused editor modules (see below)
+tests/
+  shell.sh                 Mocked installer checks; no system changes
+  nvim.lua                 Isolated Lua configuration checks
 ```
 
----
+OS differences stay in the three adapters: package names, package-manager
+commands and firewall selection. Common features and terminal configs stay
+shared. To add a distribution, map its ID/ID_LIKE in `detect_os` and add or reuse
+an adapter. Unsupported distributions fail with a clear message.
 
-## Post-Install Tips
+Neovim modules are plain Lua files, loaded explicitly rather than discovered
+automatically:
 
-1. **Start Fish**:
-   ```bash
-   fish
-   ```
-   *(If not already switched to your default shell)*.
+| Change | File under `nvim/lua/config/` |
+| --- | --- |
+| Editor settings, general shortcuts, events | `options.lua`, `keymaps.lua`, `autocmds.lua` |
+| Theme and restrained Python colours | `theme.lua` |
+| Plugin list and versions | `plugins.lua` |
+| Parsers and syntax | `treesitter.lua` |
+| File tree and search | `files.lua` |
+| Editing helpers and buffer tabs | `editing.lua` |
+| Statusline, minimap, Which-Key and panels | `ui.lua` |
+| Git features and shortcuts | `git.lua` |
+| Mason tools and prerequisite warnings | `tools.lua` |
+| Diagnostics, scrollbar and floating previews | `diagnostics.lua` |
+| Completion | `completion.lua` |
+| Language servers and Python environments | `lsp/init.lua`, `lsp/python.lua` |
+| LSP shortcuts and format-on-save | `lsp/keymaps.lua`, `lsp/formatting.lua` |
+| Windows/WSL/container/SSH clipboard | `clipboard.lua` |
+| Bottom terminal and platform-specific shell | `terminal.lua` |
 
-2. **Atuin History Search**:
-   * Press `Up` or `Ctrl+R` inside Fish to bring up the interactive Atuin search.
-   * To sync your history across other devices, run `atuin register` or `atuin login`.
+Copy the **whole `nvim/` directory**, not just `init.lua`, when applying updates.
+The installer already does this.
 
-3. **Tmux Basics**:
-   * Prefix key is `Ctrl+B`.
-   * `Ctrl+B` then `|` splits vertically.
-   * `Ctrl+B` then `-` splits horizontally.
-   * `Ctrl+B` then `h/j/k/l` moves between panes.
-   * Mouse scrolling and clicking are enabled out of the box.
+## Development checks
 
-4. **Launch Neovim**:
-   ```bash
-   nvim
-   ```
-   Plugins and Mason tools will install automatically on first launch.
+```bash
+bash tests/shell.sh
+nvim --clean --headless -l tests/nvim.lua
+```
 
-### Neovim sidebar redraw artifacts
+The tests mock privileged commands and use temporary files; they do not upgrade
+packages, change the firewall, or change the login shell. `bash check.sh` inspects
+the actual installation, continues after failures, and returns nonzero if any
+required checks fail. Optional tools or inaccessible firewall status produce
+warnings.
+
+## Using the setup
+
+Start `fish` and launch `nvim .` in your project. In tmux, the prefix is
+`Ctrl+B`: `|` and `-` split panes, `h/j/k/l` move between them, and `r` reloads
+the config. `atuin register` or `atuin login` enables history sync.
+
+The font belongs to the terminal application on your workstation, not Neovim
+or tmux. A Nerd Font such as **JetBrainsMono Nerd Font Mono** preserves file
+icons; select it in the terminal's profile settings.
+
+### Clipboard in containers and over SSH
+
+OSC 52 copies yanked text to the host clipboard through a compatible terminal.
+Container clipboard reads cannot reliably read the Windows clipboard: enter
+Insert mode and use your terminal's paste shortcut (for example
+`Ctrl+Shift+V` in Windows Terminal). Neovim's clipboard-register paste reuses
+the last text yanked inside Neovim without asking the terminal for clipboard
+access.
+
+### Sidebar redraw artifacts
 
 If scrolling the file tree shows duplicated rows and `Ctrl+L` clears them, the
-display is stale; this does not mean files have been duplicated. Until redrawn,
-the visible filename may not match the entry under the mouse, so redraw before
-opening anything.
+display is stale, not the files. Redraw before clicking: the displayed filename
+may not match the entry under the mouse.
 
-The generated tmux config uses `default-terminal "tmux-256color"` so applications
-see tmux's capabilities rather than those of an xterm. For an existing setup,
-change that line in `~/.tmux.conf`, run `tmux source-file ~/.tmux.conf`, then open
-a **new tmux window** and restart Neovim there. Existing panes keep their old
-`TERM`. `echo $TERM` in the new window should print `tmux-256color`; do not force
-this value outside tmux.
+The shared tmux config advertises `tmux-256color`. After updating
+`~/.tmux.conf`, run `tmux source-file ~/.tmux.conf` and open a **new tmux window**;
+existing panes retain their old `TERM`. Do not force this value outside tmux.
 
 If the artifact persists, compare `nvim .` inside and outside tmux in the same
-container. If it only happens inside tmux, check/update tmux and the Windows
-terminal application. If it also happens outside tmux, try
-`nvim --clean '+set mouse=a' .` to distinguish a terminal/Neovim issue from this
-plugin configuration (the clean session uses the built-in directory browser).
-
-Neovim's platform-specific clipboard handling and bottom-terminal configuration
-live in `nvim/lua/config/clipboard.lua` and `nvim/lua/config/terminal.lua`;
-`init.lua` loads them automatically. Copy the whole `nvim/` directory when
-updating the installed config, not just `init.lua`.
+container. If it only occurs inside tmux, check/update tmux and your host
+terminal application. Otherwise try `nvim --clean '+set mouse=a' .` to compare
+against Neovim's built-in directory browser without plugins.

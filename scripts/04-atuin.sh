@@ -1,51 +1,23 @@
 #!/usr/bin/env bash
-# ==============================================================================
-# 04-atuin.sh: Atuin shell history installation & setup
-# Installs Atuin to store shell history in an encrypted SQLite database.
-# ==============================================================================
-
-# Exit immediately if a command exits with a non-zero status (-e),
-# treat unset variables as an error when substituting (-u),
-# and prevent errors in a pipeline from being masked (-o pipefail).
 set -euo pipefail
 
-# Locate directory path of current script
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-# Source shared helper functions (logging, PATH verification)
-# shellcheck disable=SC1091
-source "$SCRIPT_DIR/common.sh"
-
-# Ensure ~/.local/bin exists in case Atuin binary installs there
+# shellcheck source=common.sh
+source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 ensure_local_bin
 
-# Print informational message
-log_info "Installing Atuin (magical shell history)..."
-
-# Check if the 'atuin' binary is already installed on the system
-if ! command -v atuin >/dev/null 2>&1; then
-    # Download and execute the official Atuin installer script over TLS 1.2+
-    # Pass '--no-modify-path' because we configure Fish shell integration explicitly in 06-terminal-config.sh
-    curl --proto '=https' --tlsv1.2 -sSf https://setup.atuin.sh | bash -s -- --no-modify-path || {
-        log_warn "Standard Atuin install script had an issue, checking fallback..."
-    }
-
-    # Atuin installer commonly places binary in ~/.atuin/bin; symlink to ~/.local/bin if needed
-    if [ -f "$HOME/.atuin/bin/atuin" ] && [ ! -f "$HOME/.local/bin/atuin" ]; then
-        ln -sf "$HOME/.atuin/bin/atuin" "$HOME/.local/bin/atuin"
+if ! has atuin; then
+    installer="$(mktemp)"
+    trap 'rm -f "$installer"' EXIT
+    log_info "Installing Atuin..."
+    curl --proto '=https' --tlsv1.2 -fsSL https://setup.atuin.sh -o "$installer"
+    bash "$installer" --no-modify-path
+    if [ -x "$HOME/.atuin/bin/atuin" ] && [ ! -e "$HOME/.local/bin/atuin" ]; then
+        ln -s "$HOME/.atuin/bin/atuin" "$HOME/.local/bin/atuin"
     fi
 fi
 
-# Ensure ~/.atuin/bin is also in PATH for current subshell check if present
-if [ -d "$HOME/.atuin/bin" ]; then
-    export PATH="$HOME/.atuin/bin:$PATH"
+if ! has atuin; then
+    log_error "Atuin installation completed, but its executable is missing."
+    exit 1
 fi
-
-# Verify if atuin binary is now executable on the PATH
-if command -v atuin >/dev/null 2>&1; then
-    # Print success with version number
-    log_success "Atuin installed successfully: $(atuin --version 2>/dev/null || echo 'ready')"
-else
-    # Warn if the binary was not found after installation attempt
-    log_warn "Atuin installation could not be verified automatically."
-fi
+log_success "Atuin is ready: $(atuin --version)"
