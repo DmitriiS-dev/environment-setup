@@ -54,7 +54,7 @@ For a step-by-step interactive walkthrough testing every tool and shortcut, chec
 * **Neovim 0.10+ / 0.11+**: Fast native plugin loading (`blink.cmp`, `fzf-lua`, `mini.nvim`, `diffview`, `trouble`, etc.).
 * **Clipboard over SSH**: Configured with OSC 52 so copying in Neovim over SSH works directly to your local workstation's clipboard.
 * **Clipboard in Podman/Docker**: Uses OSC 52 to copy yanked text to the host clipboard through a compatible terminal. Container clipboard reads cannot reliably read Windows clipboard contents: enter Insert mode and use your terminal's paste shortcut (for example Ctrl+Shift+V in Windows Terminal). Neovim's `p` and clipboard-register paste reuse the last text yanked inside Neovim without requesting terminal clipboard access.
-* **LSP Runtimes**: Node.js/npm, Python 3/pip, C compiler (`gcc`/`build-essential`) for Mason and Treesitter.
+* **LSP Runtimes**: Node.js/npm, Python 3 with pip/venv support, Go (for gofumpt), a C compiler (`gcc`/`build-essential`), and unzip for Mason and Treesitter.
 
 ---
 
@@ -104,3 +104,28 @@ environment-setup/
    nvim
    ```
    Plugins and Mason tools will install automatically on first launch.
+
+### Neovim sidebar redraw artifacts
+
+If scrolling the file tree shows duplicated rows and `Ctrl+L` clears them, the
+display is stale; this does not mean files have been duplicated. Until redrawn,
+the visible filename may not match the entry under the mouse, so redraw before
+opening anything.
+
+The generated tmux config uses `default-terminal "tmux-256color"` so applications
+see tmux's capabilities rather than those of an xterm. For an existing setup,
+change that line in `~/.tmux.conf`, run `tmux source-file ~/.tmux.conf`, then open
+a **new tmux window** and restart Neovim there. Existing panes keep their old
+`TERM`. `echo $TERM` in the new window should print `tmux-256color`; do not force
+this value outside tmux.
+
+If the artifact persists, compare `nvim .` inside and outside tmux in the same
+container. If it only happens inside tmux, check/update tmux and the Windows
+terminal application. If it also happens outside tmux, try
+`nvim --clean '+set mouse=a' .` to distinguish a terminal/Neovim issue from this
+plugin configuration (the clean session uses the built-in directory browser).
+
+Neovim's platform-specific clipboard handling and bottom-terminal configuration
+live in `nvim/lua/config/clipboard.lua` and `nvim/lua/config/terminal.lua`;
+`init.lua` loads them automatically. Copy the whole `nvim/` directory when
+updating the installed config, not just `init.lua`.

@@ -87,8 +87,8 @@ cat << 'EOF' > "$TMUX_CONF"
 # tmux configuration - fast, modern, and vim-friendly
 # ==============================================================================
 
-# Configure terminal emulator type to support full 256 colors
-set -g default-terminal "xterm-256color"
+# Describe tmux's virtual terminal, not the terminal emulator outside tmux.
+set -g default-terminal "tmux-256color"
 
 # Enable TrueColor (24-bit color) passthrough
 set -ag terminal-overrides ",xterm-256color:Tc"

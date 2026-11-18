@@ -2,7 +2,7 @@
 # ==============================================================================
 # 02-system-packages.sh: System update, upgrade, packages, runtimes & eza
 # Updates distro repositories, installs terminal tools (tmux, fish, btop, eza),
-# and provides build runtimes (gcc/make, Python, Node.js) needed by Mason/LSPs.
+# and provides build runtimes (gcc/make, Python, Node.js, Go) needed by Mason/LSPs.
 # ==============================================================================
 
 # Exit immediately if a command exits with a non-zero status (-e),
@@ -48,6 +48,7 @@ if [[ "$OS_FAMILY" == "ubuntu" || "$OS_FAMILY" == "debian" || "$OS_LIKE" == *"de
         fish tmux htop btop \
         build-essential gcc g++ make \
         python3 python3-pip python3-venv \
+        golang-go \
         unzip tar xclip
 
     # Check if 'eza' is already installed
@@ -96,7 +97,7 @@ elif [[ "$OS_FAMILY" == "ol" || "$OS_FAMILY" == "rhel" || "$OS_FAMILY" == "cento
     $SUDO $PKG_MGR install -y \
         fish tmux htop btop \
         gcc gcc-c++ make \
-        python3 python3-pip \
+        python3 python3-pip golang \
         unzip tar xclip 2>/dev/null || true
 
     # Install eza from repositories
@@ -113,7 +114,7 @@ elif [[ "$OS_FAMILY" == "arch" || "$OS_LIKE" == *"arch"* ]]; then
     $SUDO pacman -Syu --noconfirm \
         fish tmux htop btop eza \
         base-devel python python-pip \
-        nodejs npm unzip xclip 2>/dev/null || true
+        nodejs npm go unzip xclip 2>/dev/null || true
 fi
 
 # Fallback: if eza package was unavailable in the distro repositories, download prebuilt binary
