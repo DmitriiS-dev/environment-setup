@@ -103,6 +103,9 @@ vim.opt.mouse = "a" -- enable mouse support
 vim.opt.clipboard:append("unnamedplus") -- use system clipboard
 vim.opt.modifiable = true -- allow buffer modifications
 
+vim.g.clipboard = 'osc52'
+vim.opt.clipboard = 'unnamedplus'
+
 require("config.clipboard")
 
 vim.opt.guicursor =
@@ -153,7 +156,7 @@ vim.keymap.set("n", "<C-u>", "<C-u>zz", { desc = "Half page up (centered)" })
 
 vim.keymap.set("x", "<leader>p", '"_dP', { desc = "Paste without yanking" })
 vim.keymap.set({ "n", "v" }, "<leader>x", '"_d', { desc = "Delete without yanking" })
-vim.keymap.set("x", "<C-c>", '"+y', { desc = "Copy selection" })
+vim.keymap.set({ "v", "x" }, "<C-c>", '"+y', { desc = "Copy selection" })
 vim.keymap.set("n", "<C-v>", '"+p', { desc = "Paste from system clipboard" })
 vim.keymap.set("x", "<C-v>", '"_d"+P', { desc = "Replace selection from clipboard" })
 vim.keymap.set("i", "<C-v>", "<C-r>+", { desc = "Paste from system clipboard" })
@@ -429,15 +432,16 @@ require("ts_context_commentstring").setup({
 })
 
 require("nvim-tree").setup({
-	view = {
-		width = 35,
-	},
-	filters = {
-		dotfiles = false,
-	},
-	renderer = {
-		group_empty = true,
-	},
+    view = {
+        width = 35,
+    },
+    filters = {
+        dotfiles = false,
+        git_ignored = false,
+    },
+    renderer = {
+        group_empty = true,
+    },
 })
 vim.keymap.set("n", "<leader>e", function()
 	require("nvim-tree.api").tree.toggle()

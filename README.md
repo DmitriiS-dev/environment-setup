@@ -44,7 +44,10 @@ For a step-by-step interactive walkthrough testing every tool and shortcut, chec
 * **tmux**: Terminal multiplexer configured with 24-bit TrueColor support, mouse scrolling, vim keybindings, and easy window/pane splits (`|` and `-`).
 
 ### 3. Modern CLI Utilities
-* **eza**: Modern, colorful replacement for `ls` with filetype indicators, git status, and tree views.
+* **fzf**: Fuzzy finder with Fish key bindings and completions.
+* **eza**: Modern, colorful replacement for `ls`; Fish aliases include `ls`, `ll`, and `lt`.
+* **zoxide**: Smart directory navigation initialized in Fish (use `z`).
+* **bat**: Syntax-highlighted file viewer aliased as `cat` (uses `batcat` where that is the package's executable name).
 * **btop & htop**: Beautiful and powerful interactive system monitors for CPU, memory, disks, and processes.
 
 ### 4. Firewall & Security
@@ -67,6 +70,9 @@ environment-setup/
 ├── install.sh                     # Main installer entrypoint
 ├── check.sh                       # Automated health check & verification suite
 ├── VERIFY.md                      # Hands-on interactive manual testing guide
+├── config/
+│   ├── fish/config.fish           # Fish aliases, PATH, and tool initialization
+│   └── tmux.conf                  # tmux key bindings and status bar
 ├── scripts/
 │   ├── common.sh                  # Shared logging, sudo handling, and OS/arch detection
 │   ├── 01-prereqs.sh              # Ensures curl, wget, and certificates are installed first
